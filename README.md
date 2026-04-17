@@ -1,61 +1,105 @@
 # PixEngine
 
-PixEngine is a code-first pixel art engine. The target workflow is not "generate
-an image directly", but "write TypeScript that renders the image".
+## About & Why
 
-## Current MVP
+PixEngine is a code-first TypeScript framework for deterministic
+pixel-art rendering. The intended workflow is not "generate a bitmap directly",
+but "write TypeScript that renders the image".
 
-The current MVP is still a deterministic rendering-first foundation, but it now
-has enough reusable surface to behave like a small framework:
+The project exists to explore a practical middle ground between graphics code,
+repeatable tooling, and future AI-assisted generation workflows. Pixel art is a
+good fit for that goal: outputs are compact, easy to inspect, and easy to
+regression-test. What starts as a small rendering foundation can grow into a
+more capable framework for building reusable generators, validating their
+outputs, and evolving them without losing determinism.
 
-- `src/core`: canvas, color helpers, seeded RNG, deterministic value noise
-- `src/color`: palettes, ramps, quantization, and shading helpers
-- `src/effects`: ordered Bayer dithering
-- `src/api`: pixel-level drawing primitives
-- `src/io`: PNG encoding and writing with `pngjs`
-- `projects`: named example projects, registry, and reusable render runners
-- `tests/golden`: committed PNG fixtures for visual regression coverage
+## Examples
 
-`runtime`, `evaluator`, and the iterative pipeline are still documented but not
-yet implemented as code modules.
+The rendered examples are part of the visual regression suite. Each preview
+below is a committed golden image, and each source file is the generator used
+to produce it.
 
-## Commands
+| Preview | What it tests | Source |
+| --- | --- | --- |
+| ![Smoke example](./tests/golden/smoke.png) | Basic canvas setup, fills, direct pixel writes, alpha layering, and line drawing. | [`projects/examples/smoke.ts`](./projects/examples/smoke.ts) |
+| ![Dithering example](./tests/golden/dithering.png) | Palette sampling and ordered dithering across deterministic gradients. | [`projects/examples/dithering.ts`](./projects/examples/dithering.ts) |
+| ![Shading example](./tests/golden/shading.png) | Palette shading and simple Lambert-style lighting on a single form. | [`projects/examples/shading.ts`](./projects/examples/shading.ts) |
+| ![Noise example](./tests/golden/noise.png) | Seeded value noise, fractal sampling, terracing, and dithered palette mapping. | [`projects/examples/noise.ts`](./projects/examples/noise.ts) |
+| ![Sword example](./tests/golden/sword.png) | Sprite-style composition with reusable drawing primitives and palette-based shading. | [`projects/examples/sword.ts`](./projects/examples/sword.ts) |
+| ![Tree example](./tests/golden/tree.png) | Layered scene construction with noise, shading, dithering, and repeated palette use. | [`projects/examples/tree.ts`](./projects/examples/tree.ts) |
+
+## Details
+
+PixEngine currently focuses on deterministic rendering primitives, reusable
+example projects, and PNG output. The repository is organized around a small
+set of composable modules instead of a monolithic runtime.
+
+### Requirements
+
+- Bun `1.3.x`
+- TypeScript `6`
+- Biome as the formatter and linter authority
+
+### Repository Layout
+
+- `src/core` - canvas primitives, colors, seeded RNG, and noise helpers
+- `src/color` - palettes, ramps, quantization, and shading helpers
+- `src/effects` - image-space effects such as ordered Bayer dithering
+- `src/api` - pixel-level drawing primitives
+- `src/io` - PNG encoding and file output
+- `projects` - example project definitions, registry, and render runners
+- `tests` - unit tests and golden-image regression coverage
+- `.docs` - durable engineering context kept in the repository
+- `.results` - local generated output kept out of git
+
+### Commands
 
 ```bash
-bun install
+# format code and docs with Biome
+bun run format
+
+# lint project files without writing changes
+bun run lint
+
+# run the TypeScript type checker
+bun run typecheck
+
+# run linting, typechecking, and the full test suite
 bun run check
+
+# render the smoke example into .results/renders
 bun run render:smoke
+
+# render one named example into .results/renders
 bun run render:project sword
+
+# render every registered example into .results/renders
 bun run render:all
+```
+
+## Testing
+
+PixEngine uses both regular unit tests and golden-image regression tests. The
+unit tests cover the low-level rendering pieces such as canvas operations,
+drawing helpers, palettes, noise, dithering, and PNG encoding. The example
+projects are tested by rendering them and comparing the output byte-for-byte
+with committed fixtures in `tests/golden/`.
+
+When a rendering change is intentional, refresh the committed golden fixtures,
+review the image diff, and then run the test suite again.
+
+```bash
+# run the full test suite
+bun test
+
+# run the full local quality gate
+bun run check
+
+# refresh committed golden PNG fixtures after an intentional visual change
 bun run refresh:goldens
 ```
 
-Rendered examples are written to `.results/renders/<id>.png`. Golden fixtures are
-stored under `tests/golden/`.
+## License
 
-## Development Notes
-
-- Bun `1.3.x`
-- Biome is the single formatter/linter entrypoint
-- `.local/` is private Lotus workspace state and stays out of git
-- `.results/` holds local generated output and stays out of git
-- `.docs/` is committed as durable project context
-
-## Example Renders
-
-The registry currently ships with these deterministic projects:
-
-| Preview | Project | Generator |
-| --- | --- | --- |
-| ![Smoke example](./tests/golden/smoke.png) | `smoke` | [`projects/examples/smoke.ts`](./projects/examples/smoke.ts) |
-| ![Dithering example](./tests/golden/dithering.png) | `dithering` | [`projects/examples/dithering.ts`](./projects/examples/dithering.ts) |
-| ![Shading example](./tests/golden/shading.png) | `shading` | [`projects/examples/shading.ts`](./projects/examples/shading.ts) |
-| ![Noise example](./tests/golden/noise.png) | `noise` | [`projects/examples/noise.ts`](./projects/examples/noise.ts) |
-| ![Sword example](./tests/golden/sword.png) | `sword` | [`projects/examples/sword.ts`](./projects/examples/sword.ts) |
-| ![Tree example](./tests/golden/tree.png) | `tree` | [`projects/examples/tree.ts`](./projects/examples/tree.ts) |
-
-## Next Steps
-
-- expand the drawing API with more reusable shape and composition primitives
-- define the execution boundary for AI-authored generation code
-- add evaluator heuristics and a score-driven iteration loop
+PixEngine is licensed under the Apache License 2.0. See [LICENSE](./LICENSE)
+for the full text.

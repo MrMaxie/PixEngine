@@ -8,30 +8,30 @@ import {
   setPixel,
   shadeRamp,
 } from '../../src/index.ts';
-import { defineExampleProject } from '../example-project.ts';
+import { defineExampleProject, EXAMPLE_RENDER_SIZE } from '../example-project.ts';
 
-const WIDTH = 24;
-const HEIGHT = 24;
+const WIDTH = EXAMPLE_RENDER_SIZE;
+const HEIGHT = EXAMPLE_RENDER_SIZE;
 const canopyNoise = createValueNoise2D(7129);
 const foliageRamp = createColorRamp([rgba(26, 56, 28), rgba(57, 105, 55), rgba(102, 153, 76), rgba(181, 214, 129)]);
 
 export const treeExampleProject = defineExampleProject({
   id: 'tree',
-  width: WIDTH,
-  height: HEIGHT,
+  width: EXAMPLE_RENDER_SIZE,
+  height: EXAMPLE_RENDER_SIZE,
   render: () => {
     const canvas = createCanvas(WIDTH, HEIGHT, rgba(168, 212, 240));
 
-    fillRect(canvas, 0, 18, WIDTH, 6, rgba(111, 168, 93));
-    fillRect(canvas, 10, 14, 4, 8, rgba(94, 60, 34));
-    fillRect(canvas, 11, 12, 2, 3, rgba(122, 80, 46));
+    fillRect(canvas, 0, 50, WIDTH, 14, rgba(111, 168, 93));
+    fillRect(canvas, 27, 33, 10, 23, rgba(94, 60, 34));
+    fillRect(canvas, 29, 27, 6, 10, rgba(122, 80, 46));
 
-    for (let y = 3; y < 18; y += 1) {
-      for (let x = 3; x < 21; x += 1) {
-        const dx = (x - 12) / 7.5;
-        const dy = (y - 10) / 6.5;
+    for (let y = 8; y < 50; y += 1) {
+      for (let x = 8; x < 56; x += 1) {
+        const dx = (x - 32) / 18;
+        const dy = (y - 26) / 15;
         const distance = Math.hypot(dx, dy);
-        const noiseValue = sampleFractalNoise2D(canopyNoise, x / 7 + 0.11, y / 6 + 0.47, {
+        const noiseValue = sampleFractalNoise2D(canopyNoise, x / 15 + 0.11, y / 13 + 0.47, {
           octaves: 3,
           persistence: 0.6,
         });
@@ -47,8 +47,10 @@ export const treeExampleProject = defineExampleProject({
       }
     }
 
-    setPixel(canvas, 9, 13, rgba(181, 214, 129));
-    setPixel(canvas, 15, 9, rgba(181, 214, 129));
+    fillRect(canvas, 23, 50, 18, 3, rgba(94, 134, 70));
+    setPixel(canvas, 24, 24, rgba(181, 214, 129));
+    setPixel(canvas, 43, 16, rgba(181, 214, 129));
+    setPixel(canvas, 18, 32, rgba(181, 214, 129));
 
     return canvas;
   },

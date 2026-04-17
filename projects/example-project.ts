@@ -7,4 +7,6 @@ export type ExampleProject = Readonly<{
   render: () => PixelCanvas;
 }>;
 
+export const EXAMPLE_RENDER_SIZE = 64;
+
 export const defineExampleProject = <const Project extends ExampleProject>(project: Project) => project;

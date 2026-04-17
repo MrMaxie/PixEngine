@@ -12,6 +12,7 @@ import { encodePng } from '../src/index.ts';
 import { decodePngData, readDecodedPng } from './helpers/png.ts';
 
 const goldenDirectory = join(process.cwd(), 'tests', 'golden');
+const EXPECTED_RENDER_SIZE = 64;
 
 describe('example project renders', () => {
   for (const project of exampleProjects) {
@@ -31,8 +32,8 @@ describe('example project renders', () => {
     const writtenPng = await readDecodedPng(renderedProject.outputPath);
 
     expect(renderedProject.outputPath).toBe(join(outputDirectory, 'smoke.png'));
-    expect(writtenPng.width).toBe(16);
-    expect(writtenPng.height).toBe(16);
+    expect(writtenPng.width).toBe(EXPECTED_RENDER_SIZE);
+    expect(writtenPng.height).toBe(EXPECTED_RENDER_SIZE);
   });
 
   test('renderAllExampleProjects writes every registered project', async () => {
@@ -49,8 +50,10 @@ describe('example project renders', () => {
         throw new Error(`Missing example project ${renderedProject.id}.`);
       }
 
-      expect(writtenPng.width).toBe(project.width);
-      expect(writtenPng.height).toBe(project.height);
+      expect(writtenPng.width).toBe(EXPECTED_RENDER_SIZE);
+      expect(writtenPng.height).toBe(EXPECTED_RENDER_SIZE);
+      expect(project.width).toBe(EXPECTED_RENDER_SIZE);
+      expect(project.height).toBe(EXPECTED_RENDER_SIZE);
     }
   });
 

@@ -1,56 +1,42 @@
-import { mkdir } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { mkdir } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
 
-import { writePng } from "../src/index.ts";
-import type { ExampleProject } from "./example-project.ts";
-import { exampleProjects, getExampleProject } from "./registry.ts";
+import { writePng } from '../src/index.ts';
+import type { ExampleProject } from './example-project.ts';
+import { exampleProjects, getExampleProject } from './registry.ts';
 
-export interface RenderedExampleProject {
-	readonly id: string;
-	readonly outputPath: string;
-}
+export type RenderedExampleProject = Readonly<{
+  readonly id: string;
+  readonly outputPath: string;
+}>;
 
-export function getDefaultRenderOutputDirectory(cwd = process.cwd()): string {
-	return join(cwd, ".local", "renders");
-}
+export const getDefaultRenderOutputDirectory = (cwd = process.cwd()) => join(cwd, '.local', 'renders');
 
-export function getExampleOutputPath(
-	projectId: string,
-	outputDirectory = getDefaultRenderOutputDirectory(),
-): string {
-	return join(outputDirectory, `${projectId}.png`);
-}
+export const getExampleOutputPath = (projectId: string, outputDirectory = getDefaultRenderOutputDirectory()) => {
+  return join(outputDirectory, `${projectId}.png`);
+};
 
-export async function renderExampleProject(
-	project: ExampleProject,
-	outputDirectory = getDefaultRenderOutputDirectory(),
-): Promise<RenderedExampleProject> {
-	const outputPath = getExampleOutputPath(project.id, outputDirectory);
+export const renderExampleProject = async (
+  project: ExampleProject,
+  outputDirectory = getDefaultRenderOutputDirectory(),
+) => {
+  const outputPath = getExampleOutputPath(project.id, outputDirectory);
 
-	await mkdir(dirname(outputPath), { recursive: true });
-	await writePng(project.render(), outputPath);
+  await mkdir(dirname(outputPath), { recursive: true });
+  await writePng(project.render(), outputPath);
 
-	return {
-		id: project.id,
-		outputPath,
-	};
-}
+  return {
+    id: project.id,
+    outputPath,
+  };
+};
 
-export async function renderExampleProjectById(
-	projectId: string,
-	outputDirectory = getDefaultRenderOutputDirectory(),
-): Promise<RenderedExampleProject> {
-	return renderExampleProject(getExampleProject(projectId), outputDirectory);
-}
+export const renderExampleProjectById = async (
+  projectId: string,
+  outputDirectory = getDefaultRenderOutputDirectory(),
+) => {
+  return renderExampleProject(getExampleProject(projectId), outputDirectory);
+};
 
-export async function renderAllExampleProjects(
-	outputDirectory = getDefaultRenderOutputDirectory(),
-): Promise<RenderedExampleProject[]> {
-	const renderedProjects: RenderedExampleProject[] = [];
-
-	for (const project of exampleProjects) {
-		renderedProjects.push(await renderExampleProject(project, outputDirectory));
-	}
-
-	return renderedProjects;
-}
+export const renderAllExampleProjects = (outputDirectory = getDefaultRenderOutputDirectory()) =>
+  Promise.all(exampleProjects.map((project) => renderExampleProject(project, outputDirectory)));

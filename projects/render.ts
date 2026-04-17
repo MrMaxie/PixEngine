@@ -10,7 +10,7 @@ export type RenderedExampleProject = Readonly<{
   readonly outputPath: string;
 }>;
 
-export const getDefaultRenderOutputDirectory = (cwd = process.cwd()) => join(cwd, '.local', 'renders');
+export const getDefaultRenderOutputDirectory = (cwd = process.cwd()) => join(cwd, '.results', 'renders');
 
 export const getExampleOutputPath = (projectId: string, outputDirectory = getDefaultRenderOutputDirectory()) => {
   return join(outputDirectory, `${projectId}.png`);

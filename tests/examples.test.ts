@@ -54,9 +54,9 @@ describe('example project renders', () => {
     }
   });
 
-  test('default render output directory stays under .local/renders', () => {
+  test('default render output directory stays under .results/renders', () => {
     expect(getDefaultRenderOutputDirectory('D:\\Projects\\Personal\\PixEngine')).toBe(
-      'D:\\Projects\\Personal\\PixEngine\\.local\\renders',
+      'D:\\Projects\\Personal\\PixEngine\\.results\\renders',
     );
   });
 });

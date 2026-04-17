@@ -30,14 +30,15 @@ bun run render:all
 bun run refresh:goldens
 ```
 
-Rendered examples are written to `.local/renders/<id>.png`. Golden fixtures are
+Rendered examples are written to `.results/renders/<id>.png`. Golden fixtures are
 stored under `tests/golden/`.
 
 ## Development Notes
 
 - Bun `1.3.x`
 - Biome is the single formatter/linter entrypoint
-- `.local/` is private workspace state and stays out of git
+- `.local/` is private Lotus workspace state and stays out of git
+- `.results/` holds local generated output and stays out of git
 - `.docs/` is committed as durable project context
 
 ## Examples

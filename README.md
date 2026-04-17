@@ -5,16 +5,19 @@ an image directly", but "write TypeScript that renders the image".
 
 ## Current MVP
 
-The bootstrap in this repository focuses on a small, deterministic core:
+The current MVP is still a deterministic rendering-first foundation, but it now
+has enough reusable surface to behave like a small framework:
 
-- `src/core`: canvas, color helpers, seeded RNG
+- `src/core`: canvas, color helpers, seeded RNG, deterministic value noise
+- `src/color`: palettes, ramps, quantization, and shading helpers
+- `src/effects`: ordered Bayer dithering
 - `src/api`: pixel-level drawing primitives
 - `src/io`: PNG encoding and writing with `pngjs`
-- `projects/examples`: deterministic example renders
-- `.docs/spec`: durable project context and MVP boundaries
+- `projects`: named example projects, registry, and reusable render runners
+- `tests/golden`: committed PNG fixtures for visual regression coverage
 
-`runtime`, `evaluator`, and the iterative pipeline are documented, but not yet
-implemented as code modules.
+`runtime`, `evaluator`, and the iterative pipeline are still documented but not
+yet implemented as code modules.
 
 ## Commands
 
@@ -22,10 +25,13 @@ implemented as code modules.
 bun install
 bun run check
 bun run render:smoke
+bun run render:project sword
+bun run render:all
+bun run refresh:goldens
 ```
 
-`bun run render:smoke` writes a deterministic PNG to
-`.local/renders/smoke.png`.
+Rendered examples are written to `.local/renders/<id>.png`. Golden fixtures are
+stored under `tests/golden/`.
 
 ## Development Notes
 
@@ -34,8 +40,19 @@ bun run render:smoke
 - `.local/` is private workspace state and stays out of git
 - `.docs/` is committed as durable project context
 
+## Examples
+
+The registry currently ships with these deterministic projects:
+
+- `smoke`
+- `dithering`
+- `shading`
+- `noise`
+- `sword`
+- `tree`
+
 ## Next Steps
 
-- expand the drawing API beyond the current pixel, line, and rectangle helpers
+- expand the drawing API with more reusable shape and composition primitives
 - define the execution boundary for AI-authored generation code
 - add evaluator heuristics and a score-driven iteration loop

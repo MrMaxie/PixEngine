@@ -5,9 +5,14 @@
 - a deterministic pixel canvas
 - basic color normalization helpers
 - a seeded random source for future controlled variation
+- reusable palette, color ramp, quantization, and shading helpers
+- deterministic 2D value noise sampling
+- ordered Bayer dithering as a reusable effect
 - a minimal drawing API with `setPixel`, `line`, and `fillRect`
 - PNG encoding and file writing with `pngjs`
-- one deterministic smoke render under `projects/examples`
+- named deterministic example projects under `projects/examples`
+- project registry and render runners for single-project and all-project output
+- committed golden PNG fixtures for render regression tests
 
 ## Deferred Areas
 
@@ -19,6 +24,8 @@ The following areas are intentionally documented but not implemented yet:
 
 ## Working Boundary
 
-The initial public TypeScript surface only exposes what is needed to create a
-canvas, draw on it, and write the result to PNG. Broader system concerns should
-stay out of code until the first rendering foundation proves stable.
+The public TypeScript surface now covers reusable rendering helpers for color
+selection, shading, dithering, and procedural sampling in addition to the core
+canvas and PNG path. Broader system concerns such as execution control,
+evaluation, and iterative orchestration still stay out of code until the
+rendering foundation proves stable.

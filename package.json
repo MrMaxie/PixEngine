@@ -7,7 +7,10 @@
 		"typecheck": "tsc --noEmit",
 		"test": "bun test",
 		"check": "bun run typecheck && biome check . .docs && bun test",
-		"render:smoke": "bun run scripts/render-smoke.ts"
+		"render:smoke": "bun run scripts/render-smoke.ts",
+		"render:project": "bun run scripts/render-project.ts",
+		"render:all": "bun run scripts/render-all.ts",
+		"refresh:goldens": "bun run scripts/refresh-goldens.ts"
 	},
 	"dependencies": {
 		"pngjs": "7.0.0"

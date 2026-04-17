@@ -1,13 +1,5 @@
-import { mkdir } from "node:fs/promises";
-import { join } from "node:path";
+import { renderExampleProjectById } from "../projects/render.ts";
 
-import { renderSmokeExample } from "../projects/examples/smoke.ts";
-import { writePng } from "../src/index.ts";
+const renderedProject = await renderExampleProjectById("smoke");
 
-const outputDirectory = join(process.cwd(), ".local", "renders");
-const outputPath = join(outputDirectory, "smoke.png");
-
-await mkdir(outputDirectory, { recursive: true });
-await writePng(renderSmokeExample(), outputPath);
-
-console.log(`Rendered smoke example to ${outputPath}`);
+console.log(`Rendered ${renderedProject.id} to ${renderedProject.outputPath}`);

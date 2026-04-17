@@ -1,69 +1,58 @@
-import {
-  createCanvas,
-  createColorRamp,
-  createPalette,
-  fillRect,
-  line,
-  orderedDither,
-  rgba,
-  samplePalette,
-  setPixel,
-  shadeRamp,
-} from '../../src/index.ts';
+import { createCanvas, createPalette, fillRect, rgba, samplePalette, setPixel, shadePalette } from '../../src/index.ts';
 import { defineExampleProject, EXAMPLE_RENDER_SIZE } from '../example-project.ts';
 
 const WIDTH = EXAMPLE_RENDER_SIZE;
 const HEIGHT = EXAMPLE_RENDER_SIZE;
-const bladeRamp = createColorRamp([rgba(71, 86, 108), rgba(156, 178, 201), rgba(238, 244, 250)]);
-const hiltPalette = createPalette([rgba(60, 33, 18), rgba(109, 71, 39), rgba(179, 130, 71)]);
+const bladePalette = createPalette([rgba(72, 87, 109), rgba(142, 163, 188), rgba(235, 242, 248)]);
+const guardPalette = createPalette([rgba(112, 78, 40), rgba(176, 128, 68), rgba(231, 191, 112)]);
+const handlePalette = createPalette([rgba(67, 39, 22), rgba(111, 73, 42), rgba(164, 116, 67)]);
+const CENTER_X = 31;
+const BLADE_TOP = 8;
+const BLADE_BOTTOM = 43;
+const GUARD_MID = samplePalette(guardPalette, 0.5);
+const GUARD_BRIGHT = samplePalette(guardPalette, 1);
+const GUARD_DARK = samplePalette(guardPalette, 0);
 
 export const swordExampleProject = defineExampleProject({
   id: 'sword',
   width: EXAMPLE_RENDER_SIZE,
   height: EXAMPLE_RENDER_SIZE,
   render: () => {
-    const canvas = createCanvas(WIDTH, HEIGHT, rgba(17, 20, 28));
+    const canvas = createCanvas(WIDTH, HEIGHT);
 
-    fillRect(canvas, 3, 3, WIDTH - 6, HEIGHT - 6, rgba(22, 27, 37));
+    for (let y = BLADE_TOP; y <= BLADE_BOTTOM; y += 1) {
+      const tipProgress = Math.min(1, (y - BLADE_TOP) / 8);
+      const shoulderInset = y > BLADE_BOTTOM - 3 ? 1 : 0;
+      const bladeHalfWidth = Math.max(0, Math.min(4, Math.floor(tipProgress * 5)) - shoulderInset);
 
-    for (let y = 12; y < 41; y += 1) {
-      const bladeHalfWidth = Math.max(1, Math.floor((42 - y) / 3));
+      for (let x = CENTER_X - bladeHalfWidth; x <= CENTER_X + bladeHalfWidth + 1; x += 1) {
+        const width = Math.max(1, bladeHalfWidth * 2 + 1);
+        const centeredX = Math.abs(x - (CENTER_X + 0.5)) / width;
+        const edgeFalloff = 1 - Math.min(1, centeredX * 2.3);
+        const light = Math.max(0, Math.min(1, 0.24 + edgeFalloff * 0.68));
 
-      for (let x = 32 - bladeHalfWidth; x <= 31 + bladeHalfWidth; x += 1) {
-        const distanceFromCenter = Math.abs(x - 31.5) / Math.max(1, bladeHalfWidth);
-        const verticalFade = (41 - y) / 29;
-        const light = Math.min(1, 0.2 + verticalFade * 0.45 + (1 - distanceFromCenter) * 0.45);
-
-        setPixel(canvas, x, y, shadeRamp(bladeRamp, light));
+        setPixel(canvas, x, y, shadePalette(bladePalette, light));
       }
     }
 
-    line(canvas, 31, 12, 31, 40, rgba(238, 244, 250));
-    line(canvas, 32, 12, 32, 40, rgba(156, 178, 201));
     setPixel(canvas, 31, 9, rgba(235, 242, 248));
     setPixel(canvas, 32, 9, rgba(235, 242, 248));
-    setPixel(canvas, 30, 10, rgba(156, 178, 201));
-    setPixel(canvas, 33, 10, rgba(156, 178, 201));
-    setPixel(canvas, 29, 11, rgba(120, 142, 169));
-    setPixel(canvas, 34, 11, rgba(120, 142, 169));
-    fillRect(canvas, 22, 40, 20, 3, rgba(180, 138, 72));
-    fillRect(canvas, 24, 43, 16, 2, rgba(136, 92, 48));
-    fillRect(canvas, 28, 45, 8, 3, rgba(83, 51, 28));
+    fillRect(canvas, 23, 43, 18, 2, GUARD_MID);
+    fillRect(canvas, 25, 42, 14, 1, GUARD_BRIGHT);
+    fillRect(canvas, 26, 45, 12, 2, GUARD_DARK);
 
-    for (let y = 48; y < 58; y += 1) {
-      const handleInset = Math.floor(Math.abs(52.5 - y) / 3);
-      const left = 28 + handleInset;
-      const width = 8 - handleInset * 2;
+    for (let y = 47; y < 59; y += 1) {
+      const left = 29;
+      const width = 6;
 
       for (let x = left; x < left + width; x += 1) {
-        const dithered = orderedDither((x - left) / Math.max(1, width - 1), x, y, hiltPalette.length, 4);
-
-        setPixel(canvas, x, y, samplePalette(hiltPalette, dithered));
+        const grip = ((x + y) % 4) / 3;
+        setPixel(canvas, x, y, shadePalette(handlePalette, 0.2 + grip * 0.65));
       }
     }
 
-    fillRect(canvas, 29, 58, 6, 2, rgba(183, 131, 63));
-    fillRect(canvas, 30, 60, 4, 2, rgba(183, 131, 63));
+    fillRect(canvas, 29, 59, 6, 2, GUARD_MID);
+    fillRect(canvas, 30, 61, 4, 2, GUARD_BRIGHT);
 
     return canvas;
   },

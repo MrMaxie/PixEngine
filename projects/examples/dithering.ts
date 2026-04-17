@@ -1,56 +1,52 @@
-import {
-  createCanvas,
-  createPalette,
-  fillRect,
-  orderedDither,
-  rgba,
-  samplePalette,
-  setPixel,
-} from '../../src/index.ts';
+import { createCanvas, createPalette, orderedDither, rgba, samplePalette, setPixel } from '../../src/index.ts';
 import { defineExampleProject, EXAMPLE_RENDER_SIZE } from '../example-project.ts';
 
 const WIDTH = EXAMPLE_RENDER_SIZE;
 const HEIGHT = EXAMPLE_RENDER_SIZE;
-const palette = createPalette([rgba(18, 24, 38), rgba(69, 95, 118), rgba(160, 183, 196), rgba(240, 244, 247)]);
+const palette = createPalette([rgba(16, 22, 34), rgba(62, 88, 112), rgba(153, 180, 196), rgba(241, 245, 248)]);
+const SECTION_HEIGHTS = [20, 24, 20] as const;
 
 export const ditheringExampleProject = defineExampleProject({
   id: 'dithering',
   width: EXAMPLE_RENDER_SIZE,
   height: EXAMPLE_RENDER_SIZE,
   render: () => {
-    const canvas = createCanvas(WIDTH, HEIGHT, rgba(10, 14, 22));
+    const canvas = createCanvas(WIDTH, HEIGHT);
+    let sectionStartY = 0;
 
-    fillRect(canvas, 2, 2, WIDTH - 4, HEIGHT - 4, rgba(14, 20, 31));
-    fillRect(canvas, 6, 6, WIDTH - 12, HEIGHT - 12, rgba(17, 24, 38));
+    for (let index = 0; index < SECTION_HEIGHTS.length; index += 1) {
+      const sectionHeight = SECTION_HEIGHTS[index];
 
-    for (let y = 10; y < 22; y += 1) {
-      for (let x = 8; x < WIDTH - 8; x += 1) {
-        const value = (x - 8) / (WIDTH - 17);
-        setPixel(canvas, x, y, samplePalette(palette, value));
+      if (sectionHeight === undefined) {
+        continue;
       }
-    }
 
-    for (let y = 26; y < 46; y += 1) {
-      for (let x = 8; x < WIDTH - 8; x += 1) {
-        const value = (x - 8) / (WIDTH - 17);
-        const dithered = orderedDither(value, x, y, palette.length, 4);
-        setPixel(canvas, x, y, samplePalette(palette, dithered));
+      const sectionEndY = sectionStartY + sectionHeight;
+
+      for (let y = sectionStartY; y < sectionEndY; y += 1) {
+        const localY = y - sectionStartY;
+
+        for (let x = 0; x < WIDTH; x += 1) {
+          const horizontal = x / (WIDTH - 1);
+          const vertical = sectionHeight <= 1 ? 0 : localY / (sectionHeight - 1);
+          const diagonal = Math.min(1, Math.max(0, horizontal * 0.82 + vertical * 0.18));
+          let tone = diagonal;
+
+          if (index === 1) {
+            tone = orderedDither(diagonal, x, y, palette.length, 4);
+          }
+
+          if (index === 2) {
+            const mirrored = 1 - Math.abs(horizontal - 0.5) * 2;
+            const blended = Math.max(0, Math.min(1, mirrored * 0.8 + vertical * 0.2));
+            tone = orderedDither(blended, x, y, palette.length, 4);
+          }
+
+          setPixel(canvas, x, y, samplePalette(palette, tone));
+        }
       }
-    }
 
-    for (let y = 48; y < 54; y += 1) {
-      for (let x = 8; x < WIDTH - 8; x += 1) {
-        const gradient = (x - 8) / (WIDTH - 17);
-        const dithered = orderedDither(Math.abs(gradient - 0.5) * 2, x, y, palette.length, 4);
-        setPixel(canvas, x, y, samplePalette(palette, 1 - dithered));
-      }
-    }
-
-    for (let index = 0; index < palette.length; index += 1) {
-      const swatchX = 10 + index * 11;
-      const swatchColor = samplePalette(palette, index / (palette.length - 1));
-
-      fillRect(canvas, swatchX, 56, 8, 4, swatchColor);
+      sectionStartY = sectionEndY;
     }
 
     return canvas;

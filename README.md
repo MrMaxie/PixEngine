@@ -41,16 +41,18 @@ stored under `tests/golden/`.
 - `.results/` holds local generated output and stays out of git
 - `.docs/` is committed as durable project context
 
-## Examples
+## Example Renders
 
 The registry currently ships with these deterministic projects:
 
-- `smoke`
-- `dithering`
-- `shading`
-- `noise`
-- `sword`
-- `tree`
+| Preview | Project | Generator |
+| --- | --- | --- |
+| ![Smoke example](./tests/golden/smoke.png) | `smoke` | [`projects/examples/smoke.ts`](./projects/examples/smoke.ts) |
+| ![Dithering example](./tests/golden/dithering.png) | `dithering` | [`projects/examples/dithering.ts`](./projects/examples/dithering.ts) |
+| ![Shading example](./tests/golden/shading.png) | `shading` | [`projects/examples/shading.ts`](./projects/examples/shading.ts) |
+| ![Noise example](./tests/golden/noise.png) | `noise` | [`projects/examples/noise.ts`](./projects/examples/noise.ts) |
+| ![Sword example](./tests/golden/sword.png) | `sword` | [`projects/examples/sword.ts`](./projects/examples/sword.ts) |
+| ![Tree example](./tests/golden/tree.png) | `tree` | [`projects/examples/tree.ts`](./projects/examples/tree.ts) |
 
 ## Next Steps
 

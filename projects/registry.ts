@@ -1,4 +1,5 @@
 import type { ExampleProject } from './example-project.ts';
+import { auroraExampleProject } from './examples/aurora.ts';
 import { ditheringExampleProject } from './examples/dithering.ts';
 import { noiseExampleProject } from './examples/noise.ts';
 import { shadingExampleProject } from './examples/shading.ts';
@@ -7,6 +8,7 @@ import { swordExampleProject } from './examples/sword.ts';
 import { treeExampleProject } from './examples/tree.ts';
 
 export const exampleProjects = [
+  auroraExampleProject,
   ditheringExampleProject,
   noiseExampleProject,
   shadingExampleProject,

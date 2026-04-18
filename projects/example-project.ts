@@ -1,10 +1,10 @@
-import type { PixelCanvas } from '../src/index.ts';
+import type { Composition } from '../src/index.ts';
 
 export type ExampleProject = Readonly<{
   readonly id: string;
   readonly width: number;
   readonly height: number;
-  render: () => PixelCanvas;
+  render: () => Composition;
 }>;
 
 export const EXAMPLE_RENDER_SIZE = 64;

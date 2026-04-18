@@ -1,12 +1,11 @@
 import {
-  createCanvas,
+  Composition,
   createPalette,
   createValueNoise2D,
-  orderedDither,
+  paletteColor,
   rgba,
+  type Selector,
   sampleFractalNoise2D,
-  samplePalette,
-  setPixel,
 } from '../../src/index.ts';
 import { defineExampleProject, EXAMPLE_RENDER_SIZE } from '../example-project.ts';
 
@@ -14,25 +13,47 @@ const WIDTH = EXAMPLE_RENDER_SIZE;
 const HEIGHT = EXAMPLE_RENDER_SIZE;
 const noise = createValueNoise2D(9041);
 const detailNoise = createValueNoise2D(4157);
-const noisePalette = createPalette([
-  rgba(8, 12, 24),
-  rgba(27, 42, 69),
-  rgba(63, 89, 128),
-  rgba(123, 160, 185),
-  rgba(218, 233, 239),
-]);
 const SAMPLE_SCALE_X = 11;
 const SAMPLE_SCALE_Y = 9;
+const VISIBLE_PIXELS: Selector = {
+  type: 'channels',
+  a: {
+    min: 1,
+  },
+};
+
+const noisePalette = createPalette([
+  { name: 'deep', color: rgba(8, 12, 24) },
+  { name: 'shadow', color: rgba(27, 42, 69) },
+  { name: 'mid', color: rgba(63, 89, 128) },
+  { name: 'light', color: rgba(123, 160, 185) },
+  { name: 'foam', color: rgba(218, 233, 239) },
+]);
 
 export const noiseExampleProject = defineExampleProject({
   id: 'noise',
   width: EXAMPLE_RENDER_SIZE,
   height: EXAMPLE_RENDER_SIZE,
   render: () => {
-    const canvas = createCanvas(WIDTH, HEIGHT);
+    const composition = new Composition({
+      width: WIDTH,
+      height: HEIGHT,
+      palettes: [
+        {
+          id: 'noise',
+          palette: noisePalette,
+        },
+      ],
+    });
+    const layer = composition.createLayer({ id: 'noise-field' });
 
-    for (let y = 0; y < HEIGHT; y += 1) {
-      for (let x = 0; x < WIDTH; x += 1) {
+    layer.fillRect(0, 0, WIDTH, HEIGHT, paletteColor('noise', 'deep'));
+    layer.tone({
+      selector: VISIBLE_PIXELS,
+      palette: 'noise',
+      mode: 'palette',
+      dither: { matrixSize: 4 },
+      sample: ({ x, y }) => {
         const value = sampleFractalNoise2D(noise, x / SAMPLE_SCALE_X + 0.37, y / SAMPLE_SCALE_Y + 1.19, {
           octaves: 4,
           persistence: 0.58,
@@ -47,14 +68,11 @@ export const noiseExampleProject = defineExampleProject({
         const vignetteY = Math.abs(y - HEIGHT / 2) / (HEIGHT / 2);
         const contrast = (value - 0.5) * 1.38 + 0.5;
         const highlighted = contrast + (detail - 0.5) * 0.22 - vignetteX * 0.07 - vignetteY * 0.03;
-        const normalized = Math.max(0, Math.min(1, highlighted));
-        const terraced = Math.round(normalized * (noisePalette.length - 1)) / (noisePalette.length - 1);
-        const dithered = orderedDither(terraced, x, y, noisePalette.length, 4);
 
-        setPixel(canvas, x, y, samplePalette(noisePalette, dithered));
-      }
-    }
+        return Math.max(0, Math.min(1, highlighted));
+      },
+    });
 
-    return canvas;
+    return composition;
   },
 });

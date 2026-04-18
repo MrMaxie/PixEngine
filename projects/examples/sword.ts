@@ -1,59 +1,127 @@
-import { createCanvas, createPalette, fillRect, rgba, samplePalette, setPixel, shadePalette } from '../../src/index.ts';
+import { Composition, createPalette, paletteColor, rgba, type Selector } from '../../src/index.ts';
 import { defineExampleProject, EXAMPLE_RENDER_SIZE } from '../example-project.ts';
 
 const WIDTH = EXAMPLE_RENDER_SIZE;
 const HEIGHT = EXAMPLE_RENDER_SIZE;
-const bladePalette = createPalette([rgba(72, 87, 109), rgba(142, 163, 188), rgba(235, 242, 248)]);
-const guardPalette = createPalette([rgba(112, 78, 40), rgba(176, 128, 68), rgba(231, 191, 112)]);
-const handlePalette = createPalette([rgba(67, 39, 22), rgba(111, 73, 42), rgba(164, 116, 67)]);
-const CENTER_X = 31;
-const BLADE_TOP = 8;
-const BLADE_BOTTOM = 43;
-const GUARD_MID = samplePalette(guardPalette, 0.5);
-const GUARD_BRIGHT = samplePalette(guardPalette, 1);
-const GUARD_DARK = samplePalette(guardPalette, 0);
+const CENTER_X = 31.5;
+const VISIBLE_PIXELS: Selector = {
+  type: 'channels',
+  a: {
+    min: 1,
+  },
+};
+
+const bladePalette = createPalette([
+  { name: 'shadow', color: rgba(72, 87, 109) },
+  { name: 'mid', color: rgba(142, 163, 188) },
+  { name: 'highlight', color: rgba(235, 242, 248) },
+]);
+const guardPalette = createPalette([
+  { name: 'shadow', color: rgba(112, 78, 40) },
+  { name: 'mid', color: rgba(176, 128, 68) },
+  { name: 'highlight', color: rgba(231, 191, 112) },
+]);
+const handlePalette = createPalette([
+  { name: 'shadow', color: rgba(67, 39, 22) },
+  { name: 'mid', color: rgba(111, 73, 42) },
+  { name: 'highlight', color: rgba(164, 116, 67) },
+]);
 
 export const swordExampleProject = defineExampleProject({
   id: 'sword',
   width: EXAMPLE_RENDER_SIZE,
   height: EXAMPLE_RENDER_SIZE,
   render: () => {
-    const canvas = createCanvas(WIDTH, HEIGHT);
+    const composition = new Composition({
+      width: WIDTH,
+      height: HEIGHT,
+      palettes: [
+        { id: 'blade', palette: bladePalette },
+        { id: 'guard', palette: guardPalette },
+        { id: 'handle', palette: handlePalette },
+      ],
+    });
 
-    for (let y = BLADE_TOP; y <= BLADE_BOTTOM; y += 1) {
-      const tipProgress = Math.min(1, (y - BLADE_TOP) / 8);
-      const shoulderInset = y > BLADE_BOTTOM - 3 ? 1 : 0;
-      const bladeHalfWidth = Math.max(0, Math.min(4, Math.floor(tipProgress * 5)) - shoulderInset);
+    const blade = composition.createLayer({ id: 'blade' });
 
-      for (let x = CENTER_X - bladeHalfWidth; x <= CENTER_X + bladeHalfWidth + 1; x += 1) {
-        const width = Math.max(1, bladeHalfWidth * 2 + 1);
-        const centeredX = Math.abs(x - (CENTER_X + 0.5)) / width;
-        const edgeFalloff = 1 - Math.min(1, centeredX * 2.3);
-        const light = Math.max(0, Math.min(1, 0.24 + edgeFalloff * 0.68));
+    blade.fillCurve({
+      start: { x: 31, y: 8 },
+      color: paletteColor('blade', 'shadow'),
+      segments: [
+        { type: 'line', to: { x: 34, y: 14 } },
+        { type: 'line', to: { x: 36, y: 43 } },
+        { type: 'line', to: { x: 27, y: 43 } },
+        { type: 'line', to: { x: 29, y: 14 } },
+        { type: 'line', to: { x: 31, y: 8 } },
+      ],
+    });
+    blade.tone({
+      selector: VISIBLE_PIXELS,
+      palette: 'blade',
+      mode: 'steps',
+      steps: 3,
+      sample: ({ x, y }) => {
+        const width = Math.max(1, 4 - Math.max(0, (y - 8) / 9) * 0.65);
+        const centeredX = Math.abs(x - CENTER_X) / width;
+        const edgeFalloff = 1 - Math.min(1, centeredX * 1.9);
+        const tipLight = Math.max(0, 1 - (y - 8) / 38);
 
-        setPixel(canvas, x, y, shadePalette(bladePalette, light));
-      }
-    }
+        return Math.max(0, Math.min(1, 0.18 + edgeFalloff * 0.6 + tipLight * 0.12));
+      },
+    });
 
-    setPixel(canvas, 31, 9, rgba(235, 242, 248));
-    setPixel(canvas, 32, 9, rgba(235, 242, 248));
-    fillRect(canvas, 23, 43, 18, 2, GUARD_MID);
-    fillRect(canvas, 25, 42, 14, 1, GUARD_BRIGHT);
-    fillRect(canvas, 26, 45, 12, 2, GUARD_DARK);
+    const bladeSpecular = composition.createLayer({ id: 'blade-specular' });
 
-    for (let y = 47; y < 59; y += 1) {
-      const left = 29;
-      const width = 6;
+    bladeSpecular.fillRect(31, 9, 2, 1, paletteColor('blade', 'highlight'));
 
-      for (let x = left; x < left + width; x += 1) {
+    const guard = composition.createLayer({ id: 'guard' });
+
+    guard.fillRect(23, 43, 18, 4, paletteColor('guard', 'shadow'));
+    guard.tone({
+      selector: VISIBLE_PIXELS,
+      palette: 'guard',
+      mode: 'steps',
+      steps: 3,
+      sample: ({ x, y }) => {
+        const horizontal = 1 - Math.abs(x - CENTER_X) / 10;
+        const vertical = 1 - Math.abs(y - 44.5) / 2.5;
+
+        return Math.max(0, Math.min(1, horizontal * 0.68 + vertical * 0.22));
+      },
+    });
+
+    const handle = composition.createLayer({ id: 'handle' });
+
+    handle.fillRect(29, 47, 6, 16, paletteColor('handle', 'shadow'));
+    handle.tone({
+      selector: VISIBLE_PIXELS,
+      palette: 'handle',
+      mode: 'steps',
+      steps: 3,
+      sample: ({ x, y }) => {
         const grip = ((x + y) % 4) / 3;
-        setPixel(canvas, x, y, shadePalette(handlePalette, 0.2 + grip * 0.65));
-      }
-    }
+        const center = 1 - Math.abs(x - CENTER_X) / 3.5;
 
-    fillRect(canvas, 29, 59, 6, 2, GUARD_MID);
-    fillRect(canvas, 30, 61, 4, 2, GUARD_BRIGHT);
+        return Math.max(0, Math.min(1, 0.15 + grip * 0.45 + center * 0.2));
+      },
+    });
 
-    return canvas;
+    const pommel = composition.createLayer({ id: 'pommel' });
+
+    pommel.fillRect(29, 59, 6, 4, paletteColor('guard', 'shadow'));
+    pommel.tone({
+      selector: VISIBLE_PIXELS,
+      palette: 'guard',
+      mode: 'steps',
+      steps: 3,
+      sample: ({ x, y }) => {
+        const horizontal = 1 - Math.abs(x - CENTER_X) / 4;
+        const vertical = 1 - Math.abs(y - 60.5) / 2;
+
+        return Math.max(0, Math.min(1, horizontal * 0.55 + vertical * 0.25));
+      },
+    });
+
+    return composition;
   },
 });

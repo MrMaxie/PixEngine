@@ -1,13 +1,14 @@
 import { expect, test } from 'bun:test';
 import { PNG } from 'pngjs';
 
-import { createCanvas, encodePng, fillRect, rgba } from '../src/index.ts';
+import { Composition, encodePng, rgba } from '../src/index.ts';
 
-test('encodePng returns a valid PNG payload', () => {
-  const canvas = createCanvas(2, 3, rgba(0, 0, 0, 0));
-  fillRect(canvas, 0, 0, 1, 1, rgba(255, 0, 0));
+test('encodePng returns a valid PNG payload for a composition render', () => {
+  const composition = new Composition({ width: 2, height: 3 });
 
-  const encoded = encodePng(canvas);
+  composition.createLayer().fillRect(0, 0, 1, 1, rgba(255, 0, 0));
+
+  const encoded = encodePng(composition);
   const decoded = PNG.sync.read(Buffer.from(encoded));
 
   expect(decoded.width).toBe(2);

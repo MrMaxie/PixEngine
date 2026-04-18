@@ -1,54 +1,78 @@
-import { createCanvas, createPalette, orderedDither, rgba, samplePalette, setPixel } from '../../src/index.ts';
+import { Composition, createPalette, paletteColor, rgba, type Selector } from '../../src/index.ts';
 import { defineExampleProject, EXAMPLE_RENDER_SIZE } from '../example-project.ts';
 
 const WIDTH = EXAMPLE_RENDER_SIZE;
 const HEIGHT = EXAMPLE_RENDER_SIZE;
-const palette = createPalette([rgba(16, 22, 34), rgba(62, 88, 112), rgba(153, 180, 196), rgba(241, 245, 248)]);
 const SECTION_HEIGHTS = [20, 24, 20] as const;
+const VISIBLE_PIXELS: Selector = {
+  type: 'channels',
+  a: {
+    min: 1,
+  },
+};
+
+const tonalPalette = createPalette([
+  { name: 'shadow', color: rgba(16, 22, 34) },
+  { name: 'mid-dark', color: rgba(62, 88, 112) },
+  { name: 'mid-light', color: rgba(153, 180, 196) },
+  { name: 'highlight', color: rgba(241, 245, 248) },
+]);
 
 export const ditheringExampleProject = defineExampleProject({
   id: 'dithering',
   width: EXAMPLE_RENDER_SIZE,
   height: EXAMPLE_RENDER_SIZE,
   render: () => {
-    const canvas = createCanvas(WIDTH, HEIGHT);
-    let sectionStartY = 0;
+    const composition = new Composition({
+      width: WIDTH,
+      height: HEIGHT,
+      palettes: [
+        {
+          id: 'tones',
+          palette: tonalPalette,
+        },
+      ],
+    });
 
-    for (let index = 0; index < SECTION_HEIGHTS.length; index += 1) {
-      const sectionHeight = SECTION_HEIGHTS[index];
+    const [smoothHeight = 20, ditheredHeight = 24, steppedHeight = 20] = SECTION_HEIGHTS;
+    const smooth = composition.createLayer({ id: 'smooth-gradient' });
 
-      if (sectionHeight === undefined) {
-        continue;
-      }
+    smooth.fillRect(0, 0, WIDTH, smoothHeight, paletteColor('tones', 'shadow'));
+    smooth.gradient({
+      selector: VISIBLE_PIXELS,
+      from: paletteColor('tones', 'shadow'),
+      to: paletteColor('tones', 'highlight'),
+      start: { x: 0, y: 0 },
+      end: { x: WIDTH - 1, y: smoothHeight - 1 },
+      mode: 'smooth',
+    });
 
-      const sectionEndY = sectionStartY + sectionHeight;
+    const dithered = composition.createLayer({ id: 'palette-dither' });
+    const ditheredStartY = smoothHeight;
 
-      for (let y = sectionStartY; y < sectionEndY; y += 1) {
-        const localY = y - sectionStartY;
+    dithered.fillRect(0, ditheredStartY, WIDTH, ditheredHeight, paletteColor('tones', 'shadow'));
+    dithered.gradient({
+      selector: VISIBLE_PIXELS,
+      palette: 'tones',
+      mode: 'palette',
+      dither: { matrixSize: 4 },
+      start: { x: 0, y: ditheredStartY },
+      end: { x: WIDTH - 1, y: ditheredStartY + ditheredHeight - 1 },
+    });
 
-        for (let x = 0; x < WIDTH; x += 1) {
-          const horizontal = x / (WIDTH - 1);
-          const vertical = sectionHeight <= 1 ? 0 : localY / (sectionHeight - 1);
-          const diagonal = Math.min(1, Math.max(0, horizontal * 0.82 + vertical * 0.18));
-          let tone = diagonal;
+    const stepped = composition.createLayer({ id: 'stepped-bands' });
+    const steppedStartY = ditheredStartY + ditheredHeight;
 
-          if (index === 1) {
-            tone = orderedDither(diagonal, x, y, palette.length, 4);
-          }
+    stepped.fillRect(0, steppedStartY, WIDTH, steppedHeight, paletteColor('tones', 'shadow'));
+    stepped.gradient({
+      selector: VISIBLE_PIXELS,
+      palette: 'tones',
+      mode: 'steps',
+      steps: 3,
+      start: { x: 0, y: steppedStartY },
+      end: { x: WIDTH - 1, y: steppedStartY + steppedHeight - 1 },
+    });
 
-          if (index === 2) {
-            const mirrored = 1 - Math.abs(horizontal - 0.5) * 2;
-            const blended = Math.max(0, Math.min(1, mirrored * 0.8 + vertical * 0.2));
-            tone = orderedDither(blended, x, y, palette.length, 4);
-          }
-
-          setPixel(canvas, x, y, samplePalette(palette, tone));
-        }
-      }
-
-      sectionStartY = sectionEndY;
-    }
-
-    return canvas;
+    return composition;
   },
 });
